@@ -7,10 +7,10 @@ import configuration from './config/configuration';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MongooseConfigService } from './config/mongoose.config-service';
 import { UsersModule } from './users/users.module';
+import { ChatRoomsModule } from './chat-rooms/chat-rooms.module';
+import { AuthModule } from './auth/auth.module';
 import { mongodbConfig } from './config/mongodb.config';
 import { HttpLoggerMiddleware } from './utils/middlewares/http-logger.middleware';
-import { AuthModule } from './auth/auth.module';
-import { ChatRoomsModule } from './chat-rooms/chat-rooms.module';
 
 @Module({
   imports: [
@@ -21,9 +21,9 @@ import { ChatRoomsModule } from './chat-rooms/chat-rooms.module';
     MongooseModule.forRootAsync({
       useClass: MongooseConfigService,
     }),
-    UsersModule,
     AuthModule,
-    ChatRoomsModule
+    UsersModule,
+    ChatRoomsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -32,6 +32,10 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(HttpLoggerMiddleware)
+      // .exclude({
+      //   path: '(.*)/auth/(.*)',
+      //   method: RequestMethod.ALL,
+      // })
       .forRoutes('*');
   }
 }
