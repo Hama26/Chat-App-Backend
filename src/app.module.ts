@@ -1,25 +1,33 @@
-import { Module } from '@nestjs/common';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserModule } from './modules/user/user.module';
-import { AppDataSource } from './configs/orm.config';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from './modules/auth/auth.module';
+import configuration from './config/configuration';
+import { MongooseModule } from '@nestjs/mongoose';
+import { MongooseConfigService } from './config/mongoose.config-service';
+import { UsersModule } from './users/users.module';
+import { mongodbConfig } from './config/mongodb.config';
+import { HttpLoggerMiddleware } from './utils/middlewares/http-logger.middleware';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      ...AppDataSource.options,
-      autoLoadEntities: true,
-    }),
     ConfigModule.forRoot({
       isGlobal: true,
+      load: [configuration, mongodbConfig],
     }),
-    UserModule,
-    AuthModule,
+    MongooseModule.forRootAsync({
+      useClass: MongooseConfigService,
+    }),
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(HttpLoggerMiddleware)
+      .forRoutes('*');
+  }
+}
