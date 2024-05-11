@@ -9,6 +9,7 @@ import { MongooseConfigService } from './config/mongoose.config-service';
 import { UsersModule } from './users/users.module';
 import { mongodbConfig } from './config/mongodb.config';
 import { HttpLoggerMiddleware } from './utils/middlewares/http-logger.middleware';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { HttpLoggerMiddleware } from './utils/middlewares/http-logger.middleware
       useClass: MongooseConfigService,
     }),
     UsersModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],
