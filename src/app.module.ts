@@ -10,6 +10,7 @@ import { UsersModule } from './users/users.module';
 import { mongodbConfig } from './config/mongodb.config';
 import { HttpLoggerMiddleware } from './utils/middlewares/http-logger.middleware';
 import { AuthModule } from './auth/auth.module';
+import { ChatRoomsModule } from './chat-rooms/chat-rooms.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { AuthModule } from './auth/auth.module';
       useClass: MongooseConfigService,
     }),
     UsersModule,
-    AuthModule
+    AuthModule,
+    ChatRoomsModule
   ],
   controllers: [AppController],
   providers: [AppService],
