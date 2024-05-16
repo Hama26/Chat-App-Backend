@@ -94,6 +94,40 @@ export class ChatRoomsService implements OnApplicationBootstrap {
       select: ['_id', 'name'],
     });
   }
+  async getReactionsCount(chatId: string): Promise<{ type: string; count: number }[]> {
+    const chat = await this.chatModel.findById(chatId);
+    const reactionCounts = chat.reactions.reduce((acc, reaction) => {
+      acc[reaction.type] = (acc[reaction.type] || 0) + 1;
+      return acc;
+    }, {});
+    
+    return Object.keys(reactionCounts).map(type => ({
+      type,
+      count: reactionCounts[type]
+    }));
+  }
+
+  async addReactionToChat({
+    chatRoomId,
+    chatId,
+    userId,
+    reactionType,
+  }: {
+    chatRoomId: string;
+    chatId: string;
+    userId: string;
+    reactionType?: string | null;
+  }) {
+    return await this.chatModel.findByIdAndUpdate(
+      chatId,
+      { $push: { reactions: { userId, type: reactionType } } },
+      { new: true }
+    ).populate({
+      path: 'user',
+      select: ['_id', 'name']
+    });
+  }
+
 
   async onApplicationBootstrap() {
     await this.generateChatRooms();

@@ -12,6 +12,17 @@ export class Chat extends BaseWithTimestamps {
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   user: User;
+
+  @Prop([{
+    type: new mongoose.Schema({
+      type: { type: String, required: true }, // Reaction type (like, heart, etc.)
+      user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+    }, { _id: false })
+  }])
+  reactions: {
+    type: string;
+    user: mongoose.Types.ObjectId;
+  }[];
 }
 
 export const ChatSchema = SchemaFactory.createForClass(Chat);

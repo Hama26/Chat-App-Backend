@@ -16,6 +16,8 @@ import {
   import { Server } from 'socket.io';
   import { NewMessageChatRoomDto } from './dto/new-message-chat-room.dto';
   import { DeleteMessageChatRoomDto } from './dto/delete-message-chat-room.dto';
+  import { AddReactionDto } from './dto/add-reaction.dto';
+
   
   @WebSocketGateway({ cors: true })
   export class ChatRoomsGateway implements OnGatewayInit {
@@ -61,6 +63,39 @@ import {
       this.logger.log({ emit: event, payload });
     }
   
+
+    @UsePipes(new ValidationPipe())
+    @SubscribeMessage(SOCKET_EVENT.ADD_REACTION)
+    async handleAddReaction(
+      @ConnectedSocket() client: ISocket,
+      @SocketID() socketId: string,
+      @SocketUser() user: TSocketUser,
+      @MessageBody() dto: AddReactionDto 
+    ) {
+      const { chatRoomId, chatId, reactionType } = dto;
+  
+      // Add reaction to the database
+      await this.chatRoomsService.addReactionToChat({
+        chatRoomId,
+        chatId,
+        userId: user._id.toString(), // Convert ObjectId to string
+        reactionType,
+      });
+    
+      // Retrieve updated reaction counts
+      const reactionsCount = await this.chatRoomsService.getReactionsCount(chatId);
+  
+      console.log({ reactionsCount });
+    
+      const event = SOCKET_EVENT.REACTION_UPDATED;
+      const payload = { chatRoomId, chatId, reactions: reactionsCount };
+    
+      // Emit updated reactions count to all clients in the chat room
+      this.server.to(chatRoomId).emit(event, payload);
+      this.logger.log(`Reaction added and broadcasted in room ${chatRoomId}`);
+    }
+
+
     @UsePipes(new ValidationPipe())
     @SubscribeMessage(SOCKET_EVENT.NEW_MESSAGE_CHAT_ROOM)
     async handleNewMessage(
